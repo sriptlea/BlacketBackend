@@ -1,0 +1,57 @@
+// fix-packages.js
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+
+const packagesRoot = path.join(process.cwd(), 'packages'); // your packages folder
+
+// Recursively process all package.json files
+function processPackages(dir) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      const pkgJsonPath = path.join(fullPath, 'package.json');
+      if (fs.existsSync(pkgJsonPath)) {
+        const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf-8'));
+
+        // Delete old upstream
+        if (pkgJson.upstream) {
+          delete pkgJson.upstream;
+        }
+
+        // Ensure a folder exists with the same package name
+        const folderPath = path.join(path.dirname(pkgJsonPath), entry.name);
+        if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, { recursive: true });
+
+        // Set upstream to folder
+        pkgJson.upstream = `./${entry.name}`;
+        fs.writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, 2));
+
+        console.log(`Updated ${pkgJson.name} at ${pkgJsonPath}`);
+
+        // Stage for git commit
+        try {
+          execSync(`git add "${pkgJsonPath}"`, { stdio: 'inherit' });
+        } catch (err) {
+          console.error(`Failed to stage ${pkgJsonPath}:`, err.message);
+        }
+      }
+
+      // Recurse into subfolders
+      processPackages(fullPath);
+    }
+  }
+}
+
+processPackages(packagesRoot);
+
+// Commit all changes
+try {
+  execSync(`git commit -m "Remove upstream and replace with folder references"`, { stdio: 'inherit' });
+  console.log('✅ All packages updated and committed.');
+} catch (err) {
+  console.error('No changes to commit or git commit failed:', err.message);
+}
