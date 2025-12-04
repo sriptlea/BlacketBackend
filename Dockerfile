@@ -47,10 +47,6 @@ WORKDIR /app
 COPY --from=builder /app/backend/dist ./dist
 COPY --from=builder /app/backend/node_modules ./node_modules
 COPY --from=builder /app/backend/package.json ./package.json
-COPY --from=builder /app/packages/types/dist ./node_modules/@blacket/types/dist
-COPY --from=builder /app/packages/common/dist ./node_modules/@blacket/common/dist
-COPY --from=builder /app/packages/core/dist ./node_modules/@blacket/core/dist
-COPY --from=builder /app/packages/mail-templates/dist ./node_modules/@blacket/mail-templates/dist
 
 EXPOSE 3000
 CMD ["bun", "run", "start:prod"]
