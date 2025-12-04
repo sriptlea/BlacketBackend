@@ -45,8 +45,10 @@ FROM oven/bun:latest
 WORKDIR /app
 
 COPY --from=builder /app/backend/dist ./dist
+COPY --from=builder /app/backend/src ./src
 COPY --from=builder /app/backend/node_modules ./node_modules
 COPY --from=builder /app/backend/package.json ./package.json
+COPY --from=builder /app/backend/tsconfig.json ./tsconfig.json
 
 EXPOSE 3000
-CMD ["bun", "run", "start:prod"]
+CMD ["bun", "dist/main.js"]
