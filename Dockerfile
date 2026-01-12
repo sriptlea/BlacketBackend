@@ -39,5 +39,9 @@ WORKDIR /app/backend
 RUN bun install --no-save
 RUN bun link @blacket/types @blacket/common @blacket/core @blacket/mail-templates
 
+# Build Nest backend
+RUN bun run build
+
 EXPOSE 3000
-CMD ["bun", "run", "start:dev"]
+
+CMD ["bun", "run", "start:prod"]
